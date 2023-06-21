@@ -1,11 +1,13 @@
 using Microsoft.VisualBasic.Devices;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace BeanSalad
 {
     public partial class Form1 : Form
     {
         public static Label[,] labels = new Label[64, 32];
+        public static Bitmap currentLevel = new Bitmap(64, 32);
         struct Player
         {
             public char Icon = '@';
@@ -22,6 +24,28 @@ namespace BeanSalad
             {
                 x = x1;
                 y = y1;
+
+
+                List<int[]> positions = new List<int[]>();
+                Random r = new Random();
+
+                for (int i = 0; i < labels.GetLength(0); i++)
+                {
+                    for (int j = 0; j < labels.GetLength(1); j++)
+                    {
+                        if (currentLevel.GetPixel(i, j).R == 255 &&
+                            currentLevel.GetPixel(i, j).G == 0 &&
+                            currentLevel.GetPixel(i, j).B == 0)
+                        {
+                            positions.Add(new int[] { i, j });
+                        }
+                    }
+                }
+                int[] position = positions[r.Next(positions.Count)];
+
+                x = position[0];
+                y = position[1];
+
                 label = new Label();
                 label.BackColor = Color.FromArgb(196,66,11);
                 label.Location = new Point(12 + (16 * x)+2, 9 + (16 * y)+2);
@@ -36,17 +60,16 @@ namespace BeanSalad
                 label.TextAlign=ContentAlignment.TopLeft;
                 label.Font = new Font(FontFamily.GenericSerif, 12, FontStyle.Bold);
                 label.ForeColor = Color.Black;
+
                 f.Controls.Add(label);
 
             }
             public void updatePos(int x1, int y1)
             {
-
-                if (Form1.labels != null && Form1.labels[x1, y1] != null && !(Form1.labels[x1, y1].BackColor == Color.Black))
-                {
-                    x = x1; y = y1;
-                }
-
+                if (x < 0) { x = 0; }
+                if (y < 0) { y = 0; }
+                if (x+nextX < 0) { nextX = 0; }
+                if (y+nextY < 0) { nextY = 0; }
                 if (Form1.labels != null && y < labels.GetLength(1) - 1 && Form1.labels[x, y + 1] != null)
                 {
                     if (!(Form1.labels[x, y + 1].BackColor == Color.Black))
@@ -76,8 +99,12 @@ namespace BeanSalad
                         }
                     }
                 }
-                if (x + nextX > -1 && x + nextX < labels.GetLength(0) && Form1.labels != null && Form1.labels[x + nextX, y + nextY] != null && !(Form1.labels[x + nextX, y + nextY].BackColor == Color.Black)) { x += nextX; }
-                if (y + nextY > -1 && y + nextY < labels.GetLength(1) && Form1.labels != null && Form1.labels[x + nextX, y + nextY] != null && !(Form1.labels[x + nextX, y + nextY].BackColor == Color.Black)) { y += nextY; }
+                if (x + nextX > -1 && x + nextX < labels.GetLength(0) && y + nextY > -1 && y + nextY < labels.GetLength(1) && Form1.labels != null && Form1.labels[x + nextX, y + nextY] != null && !(Form1.labels[x + nextX, y + nextY].BackColor == Color.Black)) 
+                    { x += nextX; }
+                else { jump = -1; nextX = 0; nextY = -1; }
+                if (x + nextX > -1 && x + nextX < labels.GetLength(0) && y + nextY > -1 && y + nextY < labels.GetLength(1) && Form1.labels != null && Form1.labels[x + nextX, y + nextY] != null && !(Form1.labels[x + nextX, y + nextY].BackColor == Color.Black)) 
+                    { y += nextY; }
+                else { jump = -1; nextY=0; }
 
                 label.Location = new Point(12 + (16 * x) + 2, 9 + (16 * y) + 2);
                 if (jump == -1) { 
@@ -93,7 +120,7 @@ namespace BeanSalad
         public Form1()
         {
             InitializeComponent();
-
+            currentLevel = new Bitmap(Image.FromFile("C:\\Users\\r00t\\Pictures\\Untitled.bmp"));
             SuspendLayout();
             for (int i = 0; i < labels.GetLength(0); i++)
             {
@@ -102,7 +129,9 @@ namespace BeanSalad
                 {
                     label1 = new Label();
                     label1.BackColor = Color.FromArgb(11, 4 * j, 255- (4 * j));
-                    if (j == 31 && i%13!=5) { label1.BackColor = Color.Black; }
+                    Random r = new Random();
+                    if (currentLevel.GetPixel(i, j).R == 0 && currentLevel.GetPixel(i, j).G == 0 && currentLevel.GetPixel(i, j).B == 0 )
+                        { label1.BackColor = Color.Black; }
                     label1.Location = new Point(12 + (16 * i), 9 + (16 * j));
                     label1.Margin = new Padding(0);
                     label1.Name = "label1";
